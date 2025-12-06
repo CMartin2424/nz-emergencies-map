@@ -3,13 +3,14 @@
 // ===============================
 
 // --- DATA SOURCES (GitHub RAW URLs) ---
-// Make sure these files exist in your nz-emergencies-data repo
 const CALLS_URL =
   "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-data/main/calls.json";
+
 const STATIONS_URL =
-  "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-data/main/stations.json";
+  "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-map/main/data/stations.json";
+
 const HYDRANTS_URL =
-  "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-data/main/hydrants.json";
+  "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-map/main/data/hydrants.json";
 
 // How long a call stays on the map (days)
 const MAX_CALL_AGE_DAYS = 7;
@@ -22,17 +23,17 @@ const map = L.map("map").setView([-41.2, 174.7], 6); // centre of NZ
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors'
+  attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
 
 // Layers
 const fireLayer = L.layerGroup().addTo(map);
 const amboLayer = L.layerGroup().addTo(map);
 const stationLayer = L.layerGroup().addTo(map);
-const hydrantLayer = L.layerGroup(); // we add/remove based on zoom
+const hydrantLayer = L.layerGroup(); // only added at zoom >= 16
 
 // ===============================
-// ICONS
+// ICON FACTORY
 // ===============================
 
 function makeIcon(fileName) {
@@ -40,13 +41,16 @@ function makeIcon(fileName) {
     iconUrl: `icons/${fileName}`,
     iconSize: [40, 40],
     iconAnchor: [20, 40],
-    popupAnchor: [0, -35]
+    popupAnchor: [0, -35],
   });
 }
 
-// Call icons (you already have these files in /icons)
+// -------------------
+// ICON DEFINITIONS
+// -------------------
+
 const iconCache = {
-  // 🔥 FIRE CALLS (FENZ codes)
+  // 🔥 FIRE CALL TYPES
   MIN: makeIcon("MIN.PNG"),
   STRU: makeIcon("housefire.PNG"),
   MVC: makeIcon("MVC.PNG"),
@@ -58,7 +62,7 @@ const iconCache = {
   FIREALM: makeIcon("Alarm.PNG"),
   FIRE_FALLBACK: makeIcon("fire.png"),
 
-  // 🚑 AMBULANCE CALLS (type IS colour)
+  // 🚑 AMBULANCE (type = colour)
   RED: makeIcon("RED.PNG"),
   ORANGE: makeIcon("Orange.PNG"),
   GREEN: makeIcon("Green.PNG"),
@@ -66,8 +70,8 @@ const iconCache = {
   AMBO_FALLBACK: makeIcon("ambo.png"),
 
   // 🏢 STATIONS
-  FIRE_STATION: makeIcon("firestation.png"),   // make sure this exists
-  AMBO_STATION: makeIcon("ambostation.png")    // and this too
+  FIRE_STATION: makeIcon("fire.png"),
+  AMBO_STATION: makeIcon("ambo.png"),
 };
 
 // ===============================
@@ -93,34 +97,27 @@ function isAmbulanceCallType(callType) {
 function getIconForCall(call) {
   const rawType = (call.type || "").toUpperCase();
 
-  // 🚑 Ambulance: type is the colour
+  // Ambulance (colour-coded)
   if (isAmbulanceCallType(rawType)) {
     return iconCache[rawType] || iconCache.AMBO_FALLBACK;
   }
 
-  // 🔥 Fire: type is FENZ code
-  if (iconCache[rawType]) {
-    return iconCache[rawType];
-  }
+  // Fire (FENZ codes)
+  if (iconCache[rawType]) return iconCache[rawType];
 
   if (rawType.startsWith("FIREALM")) return iconCache.FIREALM;
+
   return iconCache.FIRE_FALLBACK;
 }
 
 function buildPopupHtml(call) {
-  const type = call.type || "Unknown";
-  const details = call.details || "";
-  const address = call.address || "";
-  const station = call.station || "";
-  const ts = call.timestamp || "";
-
   return `
     <div class="popup">
-      <b>Type:</b> ${type}<br>
-      ${details ? `<b>Details:</b> ${details}<br>` : ""}
-      ${address ? `<b>Address:</b> ${address}<br>` : ""}
-      ${station ? `<b>Station:</b> ${station}<br>` : ""}
-      ${ts ? `<b>Time:</b> ${ts}` : ""}
+      <b>Type:</b> ${call.type || "Unknown"}<br>
+      ${call.details ? `<b>Details:</b> ${call.details}<br>` : ""}
+      ${call.address ? `<b>Address:</b> ${call.address}<br>` : ""}
+      ${call.station ? `<b>Station:</b> ${call.station}<br>` : ""}
+      ${call.timestamp ? `<b>Time:</b> ${call.timestamp}` : ""}
     </div>
   `;
 }
@@ -132,14 +129,12 @@ function buildPopupHtml(call) {
 async function loadCalls() {
   try {
     const res = await fetch(CALLS_URL, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
     const calls = await res.json();
 
     fireLayer.clearLayers();
     amboLayer.clearLayers();
 
-    calls.forEach(call => {
+    calls.forEach((call) => {
       if (!call.lat || !call.lon) return;
       if (!isRecentCall(call)) return;
 
@@ -148,11 +143,8 @@ async function loadCalls() {
 
       const marker = L.marker([call.lat, call.lon], { icon }).bindPopup(popupHtml);
 
-      if (isAmbulanceCallType(call.type)) {
-        marker.addTo(amboLayer);
-      } else {
-        marker.addTo(fireLayer);
-      }
+      if (isAmbulanceCallType(call.type)) marker.addTo(amboLayer);
+      else marker.addTo(fireLayer);
     });
   } catch (err) {
     console.error("Error loading calls.json:", err);
@@ -166,28 +158,20 @@ async function loadCalls() {
 async function loadStations() {
   try {
     const res = await fetch(STATIONS_URL, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
     const stations = await res.json();
+
     stationLayer.clearLayers();
 
-    stations.forEach(s => {
+    stations.forEach((s) => {
       if (!s.lat || !s.lon) return;
 
       const t = (s.type || "").toUpperCase();
-      let icon = iconCache.FIRE_STATION;
-
-      if (t === "AMBO" || t === "AMBULANCE") {
-        icon = iconCache.AMBO_STATION;
-      }
-
-      const name = s.name || "Station";
+      const icon = t === "AMBO" ? iconCache.AMBO_STATION : iconCache.FIRE_STATION;
 
       L.marker([s.lat, s.lon], { icon })
         .addTo(stationLayer)
-        .bindPopup(`<b>${name}</b><br>Type: ${t}`);
+        .bindPopup(`<b>${s.name}</b><br>Type: ${t}`);
     });
-
   } catch (err) {
     console.error("Error loading stations.json:", err);
   }
@@ -200,12 +184,11 @@ async function loadStations() {
 async function loadHydrants() {
   try {
     const res = await fetch(HYDRANTS_URL, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
     const hydrants = await res.json();
+
     hydrantLayer.clearLayers();
 
-    hydrants.forEach(h => {
+    hydrants.forEach((h) => {
       if (!h.lat || !h.lon) return;
 
       L.circleMarker([h.lat, h.lon], {
@@ -213,26 +196,22 @@ async function loadHydrants() {
         color: "blue",
         weight: 1,
         fillColor: "blue",
-        fillOpacity: 1
+        fillOpacity: 1,
       }).addTo(hydrantLayer);
     });
-
   } catch (err) {
     console.error("Error loading hydrants.json:", err);
   }
 }
 
-// Only show hydrants when zoomed in far enough (>=16)
+// Show hydrants only when zoomed in
 map.on("zoomend", () => {
-  if (map.getZoom() >= 16) {
-    if (!map.hasLayer(hydrantLayer)) map.addLayer(hydrantLayer);
-  } else {
-    if (map.hasLayer(hydrantLayer)) map.removeLayer(hydrantLayer);
-  }
+  if (map.getZoom() >= 16) map.addLayer(hydrantLayer);
+  else map.removeLayer(hydrantLayer);
 });
 
 // ===============================
-// LAYER CONTROL (TOGGLES)
+// LAYER CONTROL
 // ===============================
 
 L.control
@@ -241,8 +220,8 @@ L.control
     {
       "Fire Calls": fireLayer,
       "Ambo Calls": amboLayer,
-      "Stations": stationLayer,
-      "Hydrants": hydrantLayer // note: only visible when zoomed in
+      Stations: stationLayer,
+      Hydrants: hydrantLayer,
     },
     { collapsed: false }
   )
@@ -256,5 +235,5 @@ loadCalls();
 loadStations();
 loadHydrants();
 
-// Optional: auto-refresh calls every 60s
+// Optional auto-refresh every 60 seconds
 // setInterval(loadCalls, 60000);
