@@ -11,37 +11,39 @@ html, body {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
+  width: 100%;
 }
 
+/* Badge */
 .brand-badge {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 6px 14px;
-  background: rgba(10,10,10,0.6);
-  border-radius: 6px;
+  top: 15px;
+  left: 15px;
+  background: rgba(0,0,0,0.6);
+  padding: 8px 14px;
+  border-radius: 8px;
   color: white;
   font-family: Arial, sans-serif;
+  font-size: 15px;
 }
 
 .badge-live-dot {
-  display: inline-block;
   width: 8px;
   height: 8px;
-  background: #4ade80;
+  background: #22ff55;
   border-radius: 50%;
-  margin-left: 4px;
+  display: inline-block;
+  margin-left: 6px;
 }
 
+/* Status bubble */
 .status-pill {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  background: rgba(10,10,10,0.6);
-  padding: 6px 14px;
-  border-radius: 6px;
-  color: white;
+  bottom: 15px;
+  left: 15px;
+  background: rgba(0,0,0,0.6);
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: #fff;
   font-family: Arial, sans-serif;
 }
