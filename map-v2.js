@@ -30,7 +30,7 @@ const darkStyle = {
 const map = new maplibregl.Map({
   container: "map",
   style: darkStyle,
-  center: [175.28, -40.47], // Foxton-ish
+  center: [175.28, -40.47], // Foxton region
   zoom: 10
 });
 
@@ -42,20 +42,26 @@ function setStatus(msg) {
 }
 
 // ===========================
-// LOAD STATIONS FROM GeoJSON
+// LOAD STATIONS (FIXED)
 // ===========================
 async function loadStations() {
   try {
-    const res = await fetch("stations.json");
+    // 🚨 Force GitHub to return the NEWEST file every time
+    const url = "https://cmartin2424.github.io/nz-emergencies-map/stations.json?v=" + Date.now();
+    console.log("Loading stations from:", url);
+
+    const res = await fetch(url);
     const geo = await res.json();
 
-    // add source
+    console.log("Stations loaded:", geo);
+
+    // Add GeoJSON as a source
     map.addSource("stations", {
       type: "geojson",
       data: geo
     });
 
-    // nicer fire-station style (white dot, red ring)
+    // Station marker style
     map.addLayer({
       id: "stations-layer",
       type: "circle",
@@ -68,29 +74,33 @@ async function loadStations() {
       }
     });
 
-    // POPUPS
+    // Popups
     map.on("click", "stations-layer", e => {
       const f = e.features[0];
       const p = f.properties;
       const coords = f.geometry.coordinates;
 
-      new maplibregl.Popup({ offset: 8 })
+      new maplibregl.Popup({ offset: 10 })
         .setLngLat(coords)
         .setHTML(`
           <div class="popup-header">Fire Station</div>
           <div class="popup-title">${p.name}</div>
-          ${p.address ? `<div class="popup-meta">${p.address}</div>` : ""}
+          <div class="popup-meta">${p.address || ""}</div>
         `)
         .addTo(map);
     });
 
     setStatus(`Loaded ${geo.features.length} stations`);
+
   } catch (err) {
-    console.error("Stations load error:", err);
+    console.error("Stations failed to load:", err);
     setStatus("Failed to load stations");
   }
 }
 
+// ===========================
+// START
+// ===========================
 map.on("load", () => {
   setStatus("Loading stations…");
   loadStations();
