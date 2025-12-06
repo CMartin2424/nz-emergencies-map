@@ -1,46 +1,130 @@
-html, body {
+/* Fullscreen map */
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
-  width: 100%;
+  background: #020617; /* deep dark background for loading */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e5e7eb;
 }
 
 #map {
-  height: 100%;
-  width: 100%;
-}
-
-#legend {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-family: system-ui, sans-serif;
-  font-size: 13px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  inset: 0;
 }
 
-#legend h3 {
-  margin: 0 0 4px;
-  font-size: 14px;
-}
-
-#legend div {
+/* Brand badge (top-left) */
+.brand-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(15, 23, 42, 0.92);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
-  margin: 2px 0;
+  gap: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  z-index: 5;
 }
 
-#legend img {
-  width: 16px;
-  height: 16px;
-  margin-right: 5px;
+.badge-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
 }
 
-#legend small {
-  display: block;
+/* Status pill (bottom-left) */
+.status-pill {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  font-size: 11px;
+  color: #e5e7eb;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-pill span.count {
+  font-weight: 600;
+}
+
+/* Mapbox popup styling */
+.mapboxgl-popup {
+  max-width: 320px;
+  font-size: 12px;
+}
+
+.mapboxgl-popup-content {
+  background: #020617;
+  color: #e5e7eb;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.mapboxgl-popup-close-button {
+  color: #6b7280;
+}
+
+.popup-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.popup-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.popup-meta {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+
+.popup-units {
+  font-size: 11px;
   margin-top: 4px;
-  color: #333;
 }
+
+.popup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.2);
+  color: #5eead4;
+  font-size: 10px;
+  margin-right: 6px;
+}
+
+.popup-chip.fire {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fecaca;
+}
+
+.popup-chip.medical {
+  background: rgba(22, 163, 74, 0.2);
+  color: #bbf7d0;
+}
+
+/* Hide Mapbox logo if your license allows – otherwise comment out */
+/* .mapboxg*

@@ -2,39 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NZ Emergencys – Live Map</title>
+  <title>NZ Emergencies Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Leaflet CSS -->
+  <!-- Mapbox GL -->
   <link
+    href="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.css"
     rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
   />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.js"></script>
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="map"></div>
 
-  <div id="legend">
-    <h3>NZ Emergencys</h3>
-    <!-- Use files that actually exist in /icons -->
-    <div><img src="icons/STRU.png" /> Fire Call</div>
-    <div><img src="icons/GREEN.png" /> Ambulance Call</div>
-    <div><img src="icons/fire-station.png" /> Fire Station</div>
-    <div><img src="icons/ambo-station.png" /> Ambulance Station</div>
-    <div><img src="icons/hydrant.png" /> Fire Hydrant</div>
-    <small>Calls auto-remove after 7 days</small>
+  <!-- Simple top-left badge (optional) -->
+  <div class="brand-badge">
+    NZ Emergencies
+    <span class="badge-live-dot"></span>
+    Live
   </div>
 
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
-  ></script>
+  <!-- Bottom-left status pill -->
+  <div id="status-pill" class="status-pill">
+    Loading recent calls…
+  </div>
 
-  <!-- bump version so the browser DEFINITELY loads the new JS -->
-  <script src="script.js?version=4"></script>
+  <script src="map.js"></script>
 </body>
 </html>
