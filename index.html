@@ -5,24 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NZ Emergencies Map</title>
 
-  <!-- MapLibre (FREE & WORKING) -->
-  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <!-- MapLibre -->
+  <link href="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.js"></script>
 
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
+
   <div id="map"></div>
 
+  <!-- Logo badge -->
   <div class="brand-badge">
     NZ Emergencies <span class="badge-live-dot"></span> Live
   </div>
 
+  <!-- Status pill -->
   <div id="status-pill" class="status-pill">Loading…</div>
 
-  <!-- IMPORTANT: Load the NEW working map file -->
-  <script src="map-v2.js"></script>
+  <!-- Load the correct JS file -->
+  <script src="map-v3.js"></script>
 
 </body>
 </html>
