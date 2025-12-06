@@ -3,18 +3,51 @@
   "features": [
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.2788, -40.4629] },
-      "properties": { "name": "Foxton Volunteer Fire Brigade", "type": "VFB" }
+      "geometry": { "type": "Point", "coordinates": [175.2839, -40.4669] },
+      "properties": {
+        "name": "Foxton Volunteer Fire Brigade",
+        "address": "Main St, Foxton"
+      }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.41545, -40.54966] },
-      "properties": { "name": "Shannon Volunteer Fire Brigade", "type": "VFB" }
+      "geometry": { "type": "Point", "coordinates": [175.2359, -40.4655] },
+      "properties": {
+        "name": "Foxton Beach Volunteer Fire Brigade",
+        "address": "Seabury Ave, Foxton Beach"
+      }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.28638, -40.61911] },
-      "properties": { "name": "Levin Volunteer Fire Brigade", "type": "VFB" }
+      "geometry": { "type": "Point", "coordinates": [175.4140, -40.5475] },
+      "properties": {
+        "name": "Shannon Volunteer Fire Brigade",
+        "address": "Grey St & Vogel St, Shannon"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.2410, -40.6035] },
+      "properties": {
+        "name": "Waitārere Volunteer Fire Brigade",
+        "address": "Park Ave, Waitārere Beach"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.2825, -40.6190] },
+      "properties": {
+        "name": "Levin Volunteer Fire Brigade",
+        "address": "Cambridge St, Levin"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.2475, -40.4663] },
+      "properties": {
+        "name": "Himatangi Beach Volunteer Fire Brigade",
+        "address": "Kuku St, Himatangi Beach"
+      }
     }
   ]
 }
