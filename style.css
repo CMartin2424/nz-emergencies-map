@@ -1,0 +1,46 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+#legend {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}
+
+#legend h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+#legend div {
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+}
+
+#legend img {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+}
+
+#legend small {
+  display: block;
+  margin-top: 4px;
+  color: #333;
+}
