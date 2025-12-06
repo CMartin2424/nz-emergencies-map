@@ -1,8 +1,8 @@
 // ===========================
-// DARK MATTER MAP (CARTO) — WORKING
+// DARK MATTER MAP (CARTO) — NEW NON-CACHED VERSION
 // ===========================
 
-const darkStyle = {
+const darkStyleV2 = {
   version: 8,
   sources: {
     basemap: {
@@ -31,33 +31,31 @@ const darkStyle = {
 
 const map = new maplibregl.Map({
   container: "map",
-  style: darkStyle,
-  center: [175.5, -40.45], // Foxton area
-  zoom: 9
+  style: darkStyleV2,        // ← NEW STYLE NAME (forces GitHub refresh)
+  center: [175.28, -40.46],  // Foxton
+  zoom: 11
 });
 
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
 const statusEl = document.getElementById("status-pill");
-const setStatus = txt => (statusEl.textContent = txt);
+const setStatus = t => statusEl.textContent = t;
 
 // ===========================
-// CORRECT DATA PATHS
+// DATA SOURCES
 // ===========================
 
 const HYDRANTS_URL = "hydrants.json";
 const STATIONS_URL = "stations.json";
-const INCIDENTS_URL = "incidents.json"; // until backend exists
-
-const RECENT_MINUTES = 30;
+const INCIDENTS_URL = "incidents.json";
 
 // ===========================
-// LOAD MAP LAYERS
+// LOAD LAYERS
 // ===========================
 
 map.on("load", async () => {
 
-  // Hydrants layer
+  // Hydrants
   map.addSource("hydrants", { type: "geojson", data: HYDRANTS_URL });
   map.addLayer({
     id: "hydrants",
@@ -70,7 +68,7 @@ map.on("load", async () => {
     }
   });
 
-  // Stations layer
+  // Stations
   map.addSource("stations", { type: "geojson", data: STATIONS_URL });
   map.addLayer({
     id: "stations",
@@ -79,13 +77,13 @@ map.on("load", async () => {
     paint: {
       "circle-radius": 4,
       "circle-color": "#ffffff",
-      "circle-opacity": 0.95",
-      "circle-stroke-color": "#000000",
+      "circle-opacity": 0.95,
+      "circle-stroke-color": "#000",
       "circle-stroke-width": 1
     }
   });
 
-  // Incidents (dynamic)
+  // Incidents
   map.addSource("incidents", {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] }
@@ -96,9 +94,9 @@ map.on("load", async () => {
     type: "circle",
     source: "incidents",
     paint: {
-      "circle-radius": 15,
-      "circle-color": "rgba(239, 68, 68, 0.35)",
-      "circle-blur": 1.0
+      "circle-radius": 16,
+      "circle-color": "rgba(239, 68, 68, 0.4)",
+      "circle-blur": 1
     }
   });
 
@@ -113,13 +111,12 @@ map.on("load", async () => {
   });
 
   setupIncidentPopup();
-
   await refreshIncidents();
   setInterval(refreshIncidents, 30000);
 });
 
 // ===========================
-// INCIDENT REFRESH
+// INCIDENT LOADING
 // ===========================
 
 async function refreshIncidents() {
@@ -127,7 +124,7 @@ async function refreshIncidents() {
     const res = await fetch(INCIDENTS_URL);
     const raw = await res.json();
 
-    const cutoff = Date.now() - RECENT_MINUTES * 60 * 1000;
+    const cutoff = Date.now() - 30 * 60000;
 
     const features = raw
       .map(parseIncident)
@@ -138,46 +135,43 @@ async function refreshIncidents() {
       features
     });
 
-    setStatus(`${features.length} calls in last ${RECENT_MINUTES} minutes`);
+    setStatus(`${features.length} recent calls`);
 
   } catch (err) {
-    console.error("Incident load error:", err);
+    console.error(err);
     setStatus("Failed to load incidents");
   }
 }
 
 function parseIncident(i) {
-  const ts = new Date(i.timestamp).getTime();
+  const t = new Date(i.timestamp).getTime();
 
   return {
     type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [i.lng, i.lat]
-    },
+    geometry: { type: "Point", coordinates: [i.lng, i.lat] },
     properties: {
       type: i.type || "Unknown",
       address: i.address || "",
       units: i.units || [],
       timestamp: i.timestamp,
-      timestampMs: ts
+      timestampMs: t
     }
   };
 }
 
 // ===========================
-// POPUP HANDLING
+// POPUPS
 // ===========================
 
 function setupIncidentPopup() {
-  let popup = null;
+  let popup;
 
-  const onClick = e => {
-    const feature = e.features[0];
-    const p = feature.properties;
+  map.on("click", ["incident-inner", "incident-outer"], e => {
+    const f = e.features[0];
+    const p = f.properties;
 
     const html = `
-      <div class="popup-header">Live Incident</div>
+      <div class="popup-header">Incident</div>
       <div class="popup-title">${p.type}</div>
       <div class="popup-meta">${p.address}</div>
       <div class="popup-meta">${new Date(p.timestamp).toLocaleTimeString()}</div>
@@ -187,11 +181,8 @@ function setupIncidentPopup() {
     if (popup) popup.remove();
 
     popup = new maplibregl.Popup({ offset: 10 })
-      .setLngLat(feature.geometry.coordinates)
+      .setLngLat(f.geometry.coordinates)
       .setHTML(html)
       .addTo(map);
-  };
-
-  map.on("click", "incident-inner", onClick);
-  map.on("click", "incident-outer", onClick);
+  });
 }
