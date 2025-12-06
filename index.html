@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NZ Emergencies Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NZ Emergencies Map</title>
 
   <!-- Mapbox GL -->
   <link
@@ -14,20 +14,17 @@
 
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div id="map"></div>
 
-  <!-- Simple top-left badge (optional) -->
+  <!-- Brand badge -->
   <div class="brand-badge">
-    NZ Emergencies
-    <span class="badge-live-dot"></span>
-    Live
+    NZ Emergencies <span class="badge-live-dot"></span> Live
   </div>
 
-  <!-- Bottom-left status pill -->
-  <div id="status-pill" class="status-pill">
-    Loading recent calls…
-  </div>
+  <!-- Status -->
+  <div id="status-pill" class="status-pill">Loading…</div>
 
   <script src="map.js"></script>
 </body>
