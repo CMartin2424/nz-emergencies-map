@@ -42,14 +42,13 @@ function setStatus(msg) {
 }
 
 // ===========================
-// LOAD MULTIPLE STATION FILES
+// LOAD FIRE STATIONS (MERGES BOTH FILES)
 // ===========================
 async function loadStations() {
   try {
-    // Add any number of station files here:
     const stationFiles = [
-      "stations.json?v=" + Date.now(),        // Local Horowhenua stations
-      "stations-nz.json?v=" + Date.now()     // Full NZ stations
+      "stations.json?v=" + Date.now(),
+      "stations-nz.json?v=" + Date.now()
     ];
 
     let allFeatures = [];
@@ -74,40 +73,43 @@ async function loadStations() {
 
     console.log("Total stations loaded:", mergedGeoJSON.features.length);
 
-    // Add merged station source
-    map.addSource("stations", {
-      type: "geojson",
-      data: mergedGeoJSON
-    });
+    if (map.getSource("stations")) {
+      map.getSource("stations").setData(mergedGeoJSON);
+    } else {
+      map.addSource("stations", {
+        type: "geojson",
+        data: mergedGeoJSON
+      });
 
-    // Draw station dots
-    map.addLayer({
-      id: "stations-layer",
-      type: "circle",
-      source: "stations",
-      paint: {
-        "circle-radius": 6,
-        "circle-color": "#ffffff",
-        "circle-stroke-color": "#ef4444",
-        "circle-stroke-width": 2
-      }
-    });
+      // Station dots
+      map.addLayer({
+        id: "stations-layer",
+        type: "circle",
+        source: "stations",
+        paint: {
+          "circle-radius": 6,
+          "circle-color": "#ffffff",
+          "circle-stroke-color": "#ef4444",
+          "circle-stroke-width": 2
+        }
+      });
 
-    // Popups when clicking a station
-    map.on("click", "stations-layer", e => {
-      const f = e.features[0];
-      const p = f.properties;
-      const coords = f.geometry.coordinates;
+      // Station popup
+      map.on("click", "stations-layer", e => {
+        const f = e.features[0];
+        const p = f.properties;
+        const coords = f.geometry.coordinates;
 
-      new maplibregl.Popup({ offset: 8 })
-        .setLngLat(coords)
-        .setHTML(`
-          <div class="popup-header">Fire Station</div>
-          <div class="popup-title">${p.name}</div>
-          <div class="popup-meta">${p.address || ""}</div>
-        `)
-        .addTo(map);
-    });
+        new maplibregl.Popup({ offset: 10 })
+          .setLngLat(coords)
+          .setHTML(`
+            <div class="popup-header">Fire Station</div>
+            <div class="popup-title">${p.name}</div>
+            <div class="popup-meta">${p.address || ""}</div>
+          `)
+          .addTo(map);
+      });
+    }
 
     setStatus(`Loaded ${mergedGeoJSON.features.length} stations`);
 
@@ -118,12 +120,94 @@ async function loadStations() {
 }
 
 // ===========================
-// CLICK-TO-GET COORDINATES (optional helper)
+// LOAD LIVE CALLS
+// ===========================
+async function loadCalls() {
+  try {
+    const url = "calls.json?v=" + Date.now();
+    console.log("Loading calls from:", url);
+
+    const res = await fetch(url);
+    const calls = await res.json();
+
+    const features = calls.map(c => ({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [c.lng, c.lat]
+      },
+      properties: {
+        type: c.type,
+        address: c.address,
+        timestamp: c.timestamp,
+        units: c.units || []
+      }
+    }));
+
+    const geo = {
+      type: "FeatureCollection",
+      features: features
+    };
+
+    if (map.getSource("calls")) {
+      map.getSource("calls").setData(geo);
+    } else {
+      map.addSource("calls", { type: "geojson", data: geo });
+
+      // Glowing outer ring
+      map.addLayer({
+        id: "calls-outer",
+        type: "circle",
+        source: "calls",
+        paint: {
+          "circle-radius": 16,
+          "circle-color": "rgba(255,0,0,0.4)",
+          "circle-blur": 1.2
+        }
+      });
+
+      // Solid red center
+      map.addLayer({
+        id: "calls-inner",
+        type: "circle",
+        source: "calls",
+        paint: {
+          "circle-radius": 6,
+          "circle-color": "#ff0000"
+        }
+      });
+
+      // Call popup
+      map.on("click", "calls-inner", e => {
+        const p = e.features[0].properties;
+        const coords = e.features[0].geometry.coordinates;
+
+        new maplibregl.Popup({ offset: 10 })
+          .setLngLat(coords)
+          .setHTML(`
+            <div class="popup-header">Active Incident</div>
+            <div class="popup-title">${p.type}</div>
+            <div class="popup-meta">${p.address}</div>
+            <div class="popup-meta">Units: ${p.units.join(", ")}</div>
+            <div class="popup-meta">${new Date(p.timestamp).toLocaleTimeString()}</div>
+          `)
+          .addTo(map);
+      });
+    }
+
+    console.log("Calls loaded:", features.length);
+
+  } catch (err) {
+    console.error("Failed to load calls:", err);
+  }
+}
+
+// ===========================
+// CLICK-TO-GET COORDS (HELPER)
 // ===========================
 function enableCoordPicker() {
   map.on("click", e => {
     const { lng, lat } = e.lngLat;
-    console.log("Clicked at:", lng, lat);
 
     new maplibregl.Popup({ offset: 6 })
       .setLngLat([lng, lat])
@@ -137,10 +221,16 @@ function enableCoordPicker() {
 }
 
 // ===========================
-// START
+// MAP LOADED
 // ===========================
 map.on("load", () => {
-  setStatus("Loading stations…");
+  setStatus("Loading data…");
+
   loadStations();
-  enableCoordPicker(); // You can remove this if not needed anymore
+  loadCalls();
+
+  // Refresh calls every 30 seconds
+  setInterval(loadCalls, 30000);
+
+  enableCoordPicker();
 });
