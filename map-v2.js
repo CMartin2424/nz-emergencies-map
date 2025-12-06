@@ -15,13 +15,11 @@ const darkStyle = {
       attribution: "© OpenStreetMap © CARTO"
     }
   },
-  layers: [
-    {
-      id: "basemap",
-      type: "raster",
-      source: "basemap"
-    }
-  ]
+  layers: [{
+    id: "basemap",
+    type: "raster",
+    source: "basemap"
+  }]
 };
 
 // ===========================
@@ -37,18 +35,18 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
 const statusEl = document.getElementById("status-pill");
-const setStatus = txt => statusEl.textContent = txt;
+const setStatus = (txt) => statusEl.textContent = txt;
 
 // ===========================
-// HYDRANTS
+// LOAD EVERYTHING
 // ===========================
 map.on("load", async () => {
 
+  // HYDRANTS
   map.addSource("hydrants", {
     type: "geojson",
     data: "hydrants.json"
   });
-
   map.addLayer({
     id: "hydrants",
     type: "circle",
@@ -60,14 +58,11 @@ map.on("load", async () => {
     }
   });
 
-  // ===========================
   // STATIONS
-  // ===========================
   map.addSource("stations", {
     type: "geojson",
     data: "stations.json"
   });
-
   map.addLayer({
     id: "stations",
     type: "circle",
@@ -80,9 +75,7 @@ map.on("load", async () => {
     }
   });
 
-  // ===========================
   // INCIDENTS
-  // ===========================
   map.addSource("incidents", {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] }
@@ -157,15 +150,12 @@ function parseIncident(i) {
 }
 
 // ===========================
-// POPUP FOR INCIDENTS
+// POPUP HANDLER
 // ===========================
 function setupIncidentPopup() {
   let popup;
 
-  map.on("click", "incident-inner", e => show(e));
-  map.on("click", "incident-outer", e => show(e));
-
-  function show(e) {
+  const show = (e) => {
     const f = e.features[0];
     const p = f.properties;
 
@@ -183,5 +173,8 @@ function setupIncidentPopup() {
       .setLngLat(f.geometry.coordinates)
       .setHTML(html)
       .addTo(map);
-  }
+  };
+
+  map.on("click", "incident-inner", show);
+  map.on("click", "incident-outer", show);
 }
