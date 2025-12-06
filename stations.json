@@ -1,10 +1,35 @@
-[
-  {
-    "name": "Shannon Volunteer Fire Brigade",
-    "address": "57 Grey Street, Shannon, New Zealand"
-  },
-  {
-    "name": "Foxton Fire Station",
-    "address": "22 Clyde Street, Foxton, New Zealand"
-  }
-]
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.28393, -40.46778] },
+      "properties": { "name": "Foxton Volunteer Fire Brigade" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.23591, -40.46542] },
+      "properties": { "name": "Foxton Beach Volunteer Fire Brigade" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.41380, -40.54744] },
+      "properties": { "name": "Shannon Volunteer Fire Brigade" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.27577, -40.62024] },
+      "properties": { "name": "Waitārere Volunteer Fire Brigade" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.49940, -40.62206] },
+      "properties": { "name": "Levin Volunteer Fire Brigade" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.24778, -40.46609] },
+      "properties": { "name": "Himatangi Beach Volunteer Fire Brigade" }
+    }
+  ]
+}
