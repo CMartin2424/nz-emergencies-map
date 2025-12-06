@@ -1,5 +1,5 @@
 // ===========================
-// DARK TONER MAP (STAMEN)
+// DARK MATTER MAP (CARTO) — WORKING
 // ===========================
 
 const darkStyle = {
@@ -8,11 +8,12 @@ const darkStyle = {
     basemap: {
       type: "raster",
       tiles: [
-        "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png"
+        "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
       ],
       tileSize: 256,
-      attribution:
-        "Map tiles by Stamen — Data © OpenStreetMap contributors"
+      attribution: "© OpenStreetMap contributors © CARTO"
     }
   },
   layers: [
@@ -46,7 +47,7 @@ const setStatus = txt => (statusEl.textContent = txt);
 
 const HYDRANTS_URL = "hydrants.json";
 const STATIONS_URL = "stations.json";
-const INCIDENTS_URL = "incidents.json"; // temporary until backend exists
+const INCIDENTS_URL = "incidents.json"; // until backend exists
 
 const RECENT_MINUTES = 30;
 
@@ -55,7 +56,8 @@ const RECENT_MINUTES = 30;
 // ===========================
 
 map.on("load", async () => {
-  // Hydrants
+
+  // Hydrants layer
   map.addSource("hydrants", { type: "geojson", data: HYDRANTS_URL });
   map.addLayer({
     id: "hydrants",
@@ -68,7 +70,7 @@ map.on("load", async () => {
     }
   });
 
-  // Stations
+  // Stations layer
   map.addSource("stations", { type: "geojson", data: STATIONS_URL });
   map.addLayer({
     id: "stations",
@@ -77,13 +79,13 @@ map.on("load", async () => {
     paint: {
       "circle-radius": 4,
       "circle-color": "#ffffff",
-      "circle-opacity": 0.95,
+      "circle-opacity": 0.95",
       "circle-stroke-color": "#000000",
       "circle-stroke-width": 1
     }
   });
 
-  // Incidents
+  // Incidents (dynamic)
   map.addSource("incidents", {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] }
@@ -137,6 +139,7 @@ async function refreshIncidents() {
     });
 
     setStatus(`${features.length} calls in last ${RECENT_MINUTES} minutes`);
+
   } catch (err) {
     console.error("Incident load error:", err);
     setStatus("Failed to load incidents");
