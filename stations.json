@@ -3,7 +3,7 @@
   "features": [
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.28655, -40.46677] },
+      "geometry": { "type": "Point", "coordinates": [175.28309, -40.47266] },
       "properties": {
         "name": "Foxton Volunteer Fire Brigade",
         "address": "96 Main Street, Foxton"
@@ -11,7 +11,7 @@
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.22578, -40.46411] },
+      "geometry": { "type": "Point", "coordinates": [175.23051, -40.46606] },
       "properties": {
         "name": "Foxton Beach Volunteer Fire Brigade",
         "address": "35 Seabury Ave, Foxton Beach"
@@ -19,7 +19,7 @@
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.41501, -40.54744] },
+      "geometry": { "type": "Point", "coordinates": [175.41682, -40.54790] },
       "properties": {
         "name": "Shannon Volunteer Fire Brigade",
         "address": "47 Grey Street, Shannon"
@@ -27,26 +27,26 @@
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.24209, -40.60339] },
+      "geometry": { "type": "Point", "coordinates": [175.23486, -40.36907] },
       "properties": {
-        "name": "Waitārere Volunteer Fire Brigade",
+        "name": "Himatangi Beach Volunteer Fire Brigade",
+        "address": "2 Kuku Street, Himatangi Beach"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.20577, -40.55248] },
+      "properties": {
+        "name": "Waitārere Beach Volunteer Fire Brigade",
         "address": "4 Park Ave, Waitārere Beach"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.28086, -40.62048] },
+      "geometry": { "type": "Point", "coordinates": [175.28468, -40.62068] },
       "properties": {
         "name": "Levin Volunteer Fire Brigade",
         "address": "66 Cambridge St South, Levin"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.24853, -40.46610] },
-      "properties": {
-        "name": "Himatangi Beach Volunteer Fire Brigade",
-        "address": "2 Kuku Street, Himatangi Beach"
       }
     }
   ]
