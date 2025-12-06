@@ -12,6 +12,8 @@ const STATIONS_URL =
 const HYDRANTS_URL =
   "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-map/main/hydrants.json";
 
+// How long calls stay on the map (days)
+const MAX_CALL_AGE_DAYS = 7;
 
 // ===============================
 // MAP
@@ -20,7 +22,8 @@ const HYDRANTS_URL =
 const map = L.map("map").setView([-41.2, 174.7], 6);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 20
+  maxZoom: 20,
+  attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
 // Layers
@@ -29,27 +32,27 @@ const amboLayer = L.layerGroup().addTo(map);
 const stationLayer = L.layerGroup().addTo(map);
 const hydrantLayer = L.layerGroup();
 
-
 // ===============================
-// ICON HELPER
+// ICON CREATOR
 // ===============================
 
-function makeIcon(fileName) {
+function makeIcon(filename) {
   return L.icon({
-    iconUrl: `icons/${fileName}`,
+    iconUrl: `icons/${filename}`,
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -35]
   });
 }
 
-
 // ===============================
-// ICON DEFINITIONS (MATCH YOUR REAL FILE NAMES)
+// CORRECTED ICON CACHE
+// (Matches EXACT GitHub filenames)
 // ===============================
 
 const iconCache = {
-  // Fire calls
+
+  // 🔥 FIRE CALL TYPES
   STRU: makeIcon("STRU.png"),
   MIN: makeIcon("MIN.PNG"),
   MVC: makeIcon("MVC.PNG"),
@@ -57,116 +60,132 @@ const iconCache = {
   HAZ: makeIcon("HAZ.PNG"),
   NAT: makeIcon("NAT.PNG"),
   MED: makeIcon("MED.png"),
-
   ALARM: makeIcon("ALARM.png"),
   FIREALM: makeIcon("ALARM.png"),
-
   FIRE_FALLBACK: makeIcon("ALARM.png"),
 
-  // Ambulance colour calls
+  // 🚑 AMBULANCE COLOR CALL TYPES
   RED: makeIcon("RED.png"),
   GREEN: makeIcon("GREEN.png"),
   ORANGE: makeIcon("ORANGE.png"),
   PURPLE: makeIcon("PURPLE.png"),
-
   AMBO_FALLBACK: makeIcon("GREEN.png"),
 
-  // Stations (your real names)
+  // 🏢 STATIONS
   FIRE_STATION: makeIcon("fire-station.png"),
   AMBO_STATION: makeIcon("ambo-station.png"),
 
-  // Hydrant
+  // 🔵 HYDRANTS
   HYDRANT: makeIcon("hydrant.png")
 };
-
 
 // ===============================
 // HELPERS
 // ===============================
 
-function isAmbulance(type) {
-  return ["RED", "GREEN", "ORANGE", "PURPLE"].includes(type);
+function isAmbulanceCallType(t) {
+  t = (t || "").toUpperCase();
+  return ["RED", "ORANGE", "GREEN", "PURPLE"].includes(t);
 }
 
 function getIconForCall(call) {
   const type = (call.type || "").toUpperCase();
+
+  if (isAmbulanceCallType(type)) {
+    return iconCache[type] || iconCache.AMBO_FALLBACK;
+  }
+
   return iconCache[type] || iconCache.FIRE_FALLBACK;
 }
-
 
 // ===============================
 // LOAD CALLS
 // ===============================
 
 async function loadCalls() {
-  const res = await fetch(CALLS_URL);
-  const calls = await res.json();
+  try {
+    const res = await fetch(CALLS_URL);
+    const calls = await res.json();
 
-  fireLayer.clearLayers();
-  amboLayer.clearLayers();
+    fireLayer.clearLayers();
+    amboLayer.clearLayers();
 
-  calls.forEach(call => {
-    if (!call.lat || !call.lon) return;
+    calls.forEach(call => {
+      if (!call.lat || !call.lon) return;
 
-    const icon = getIconForCall(call);
-    const marker = L.marker([call.lat, call.lon], { icon })
-      .bindPopup(`<b>${call.type}</b><br>${call.address || ""}`);
+      const icon = getIconForCall(call);
 
-    if (isAmbulance(call.type.toUpperCase()))
-      marker.addTo(amboLayer);
-    else
-      marker.addTo(fireLayer);
-  });
+      L.marker([call.lat, call.lon], { icon })
+        .bindPopup(`<b>${call.type}</b><br>${call.address || ""}`)
+        .addTo(isAmbulanceCallType(call.type) ? amboLayer : fireLayer);
+    });
+
+  } catch (err) {
+    console.error("Error loading calls:", err);
+  }
 }
-
 
 // ===============================
 // LOAD STATIONS
 // ===============================
 
 async function loadStations() {
-  const res = await fetch(STATIONS_URL);
-  const stations = await res.json();
+  try {
+    const res = await fetch(STATIONS_URL);
+    const stations = await res.json();
 
-  stationLayer.clearLayers();
+    stationLayer.clearLayers();
 
-  stations.forEach(s => {
-    const icon = s.type === "AMBO" ? iconCache.AMBO_STATION : iconCache.FIRE_STATION;
+    stations.forEach(s => {
+      if (!s.lat || !s.lon) return;
 
-    L.marker([s.lat, s.lon], { icon })
-      .addTo(stationLayer)
-      .bindPopup(`<b>${s.name}</b><br>${s.type}`);
-  });
+      const icon =
+        s.type === "AMBO"
+          ? iconCache.AMBO_STATION
+          : iconCache.FIRE_STATION;
+
+      L.marker([s.lat, s.lon], { icon })
+        .bindPopup(`<b>${s.name}</b><br>Type: ${s.type}`)
+        .addTo(stationLayer);
+    });
+
+  } catch (err) {
+    console.error("Error loading stations:", err);
+  }
 }
-
 
 // ===============================
 // LOAD HYDRANTS
 // ===============================
 
 async function loadHydrants() {
-  const res = await fetch(HYDRANTS_URL);
-  const hydrants = await res.json();
+  try {
+    const res = await fetch(HYDRANTS_URL);
+    const hydrants = await res.json();
 
-  hydrantLayer.clearLayers();
+    hydrantLayer.clearLayers();
 
-  hydrants.forEach(h => {
-    L.circleMarker([h.lat, h.lon], {
-      radius: 4,
-      color: "blue",
-      fillColor: "blue",
-      fillOpacity: 1
-    }).addTo(hydrantLayer);
-  });
+    hydrants.forEach(h => {
+      if (!h.lat || !h.lon) return;
+
+      L.circleMarker([h.lat, h.lon], {
+        radius: 4,
+        color: "blue",
+        fillColor: "blue",
+        fillOpacity: 1
+      }).addTo(hydrantLayer);
+    });
+
+  } catch (err) {
+    console.error("Error loading hydrants.json:", err);
+  }
 }
 
-
-// Zoom-dependent hydrants
+// Show hydrants only when zoomed in
 map.on("zoomend", () => {
   if (map.getZoom() >= 16) map.addLayer(hydrantLayer);
   else map.removeLayer(hydrantLayer);
 });
-
 
 // ===============================
 // LAYER CONTROL
@@ -182,7 +201,6 @@ L.control.layers(
   },
   { collapsed: false }
 ).addTo(map);
-
 
 // ===============================
 // INITIAL LOAD
