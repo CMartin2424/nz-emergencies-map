@@ -5,12 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NZ Emergencies Map</title>
 
-  <!-- Mapbox GL -->
-  <link
-    href="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.css"
-    rel="stylesheet"
-  />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.16.1/mapbox-gl.js"></script>
+  <!-- MapLibre GL (open-source Mapbox replacement) -->
+  <link href="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.js"></script>
 
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -18,12 +15,10 @@
 <body>
   <div id="map"></div>
 
-  <!-- Brand badge -->
   <div class="brand-badge">
     NZ Emergencies <span class="badge-live-dot"></span> Live
   </div>
 
-  <!-- Status -->
   <div id="status-pill" class="status-pill">Loading…</div>
 
   <script src="map.js"></script>
