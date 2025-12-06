@@ -2,19 +2,13 @@
   {
     "name": "Foxton Fire Station",
     "type": "FIRE",
-    "lat": -40.46432,
-    "lon": 175.28295
-  },
-  {
-    "name": "Levin Fire Station",
-    "type": "FIRE",
-    "lat": -40.6205,
-    "lon": 175.2820
+    "lat": -40.472038,
+    "lon": 175.285275
   },
   {
     "name": "Foxton Ambulance Station",
     "type": "AMBO",
-    "lat": -40.46735,
-    "lon": 175.28782
+    "lat": -40.469944,
+    "lon": 175.285639
   }
 ]
