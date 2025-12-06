@@ -19,19 +19,22 @@
 
   <div id="legend">
     <h3>NZ Emergencys</h3>
-    <div><img src="icons/Alarm.PNG" /> Fire Call</div>
-    <div><img src="icons/Green.PNG" /> Ambulance Call</div>
-    <div><img src="icons/firestation.png" /> Fire Station</div>
-    <div><img src="icons/ambostation.png" /> Ambulance Station</div>
-    <div><img src="icons/Hydrant.png" /> Fire Hydrant</div>
+    <!-- Use files that actually exist in /icons -->
+    <div><img src="icons/STRU.png" /> Fire Call</div>
+    <div><img src="icons/GREEN.png" /> Ambulance Call</div>
+    <div><img src="icons/fire-station.png" /> Fire Station</div>
+    <div><img src="icons/ambo-station.png" /> Ambulance Station</div>
+    <div><img src="icons/hydrant.png" /> Fire Hydrant</div>
     <small>Calls auto-remove after 7 days</small>
   </div>
 
   <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
 
-  <!-- LOAD CLEAN VERSION OF SCRIPT -->
-  <script src="script.js"></script>
-
+  <!-- bump version so the browser DEFINITELY loads the new JS -->
+  <script src="script.js?version=4"></script>
 </body>
 </html>
