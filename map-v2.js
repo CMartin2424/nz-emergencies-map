@@ -1,17 +1,18 @@
-// =========================================
-// DARK TONER MAP (STAMEN)
-// =========================================
+// ===========================
+// DARK BASEMAP (CARTO) — WORKING
+// ===========================
 const darkStyle = {
   version: 8,
   sources: {
     basemap: {
       type: "raster",
       tiles: [
-        "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png"
+        "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
       ],
       tileSize: 256,
-      attribution:
-        "Map tiles by Stamen — Data © OpenStreetMap contributors"
+      attribution: "© OpenStreetMap contributors © CARTO"
     }
   },
   layers: [
@@ -23,121 +24,47 @@ const darkStyle = {
   ]
 };
 
-// =========================================
+// ===========================
 // MAP INIT
-// =========================================
+// ===========================
 const map = new maplibregl.Map({
   container: "map",
   style: darkStyle,
-  center: [175.5, -40.45],  // Foxton area
+  center: [175.28, -40.47], // Foxton area
   zoom: 10
 });
 
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
 const statusEl = document.getElementById("status-pill");
-const setStatus = (t) => (statusEl.textContent = t);
+function setStatus(txt) { statusEl.textContent = txt; }
 
-// =========================================
-// FILE LOCATIONS
-// =========================================
-const HYDRANTS_URL = "hydrants.json";
-const STATIONS_URL = "stations.json";
-const INCIDENTS_URL = "incidents.json"; // can be API later
-
-const RECENT_MINUTES = 30;
-
-// =========================================
-// GEOCODER (Address → Coordinates)
-// =========================================
-async function geocodeAddress(address) {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-    address
-  )}&limit=1`;
-
-  try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "NZ-Emergencies-Map" }
-    });
-    const json = await res.json();
-
-    if (!json[0]) return null;
-
-    return {
-      lat: parseFloat(json[0].lat),
-      lng: parseFloat(json[0].lon)
-    };
-  } catch (e) {
-    console.error("Geocode failed:", e);
-    return null;
-  }
-}
-
-// =========================================
-// LOAD STATIONS (Supports Address OR Coordinates)
-// =========================================
-async function loadStations() {
-  const res = await fetch(STATIONS_URL);
-  const rawStations = await res.json();
-
-  const features = [];
-
-  for (const s of rawStations) {
-    let coords = null;
-
-    if (s.lat && s.lng) {
-      // already has coordinates
-      coords = { lat: s.lat, lng: s.lng };
-    } else if (s.address) {
-      // geocode address
-      coords = await geocodeAddress(s.address);
-    }
-
-    if (!coords) continue;
-
-    features.push({
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [coords.lng, coords.lat]
-      },
-      properties: {
-        name: s.name || "Station"
-      }
-    });
-  }
-
-  map.getSource("stations").setData({
-    type: "FeatureCollection",
-    features
-  });
-}
-
-// =========================================
-// MAP LOAD EVENT
-// =========================================
+// ===========================
+// LOAD HYDRANTS
+// ===========================
 map.on("load", async () => {
-  // ---------------------------
-  // HYDRANTS
-  // ---------------------------
-  map.addSource("hydrants", { type: "geojson", data: HYDRANTS_URL });
+  map.addSource("hydrants", {
+    type: "geojson",
+    data: "hydrants.json"
+  });
+
   map.addLayer({
     id: "hydrants",
     type: "circle",
     source: "hydrants",
     paint: {
       "circle-radius": 2,
-      "circle-color": "#aaaaaa",
-      "circle-opacity": 0.5
+      "circle-color": "#9ca3af",
+      "circle-opacity": 0.55
     }
   });
 
-  // ---------------------------
-  // STATIONS (Starts Empty, Filled After Geocoding)
-  // ---------------------------
+  // ===========================
+  // LOAD STATIONS (using fixed coordinates)
+  // ===========================
   map.addSource("stations", {
     type: "geojson",
-    data: { type: "FeatureCollection", features: [] }
+    data: "stations.json"
   });
 
   map.addLayer({
@@ -152,11 +79,9 @@ map.on("load", async () => {
     }
   });
 
-  loadStations(); // <--- load stations
-
-  // ---------------------------
-  // INCIDENTS
-  // ---------------------------
+  // ===========================
+  // LOAD INCIDENTS
+  // ===========================
   map.addSource("incidents", {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] }
@@ -168,8 +93,8 @@ map.on("load", async () => {
     source: "incidents",
     paint: {
       "circle-radius": 15,
-      "circle-color": "rgba(239, 68, 68, 0.25)",
-      "circle-blur": 1
+      "circle-color": "rgba(239, 68, 68, 0.35)",
+      "circle-blur": 1.0
     }
   });
 
@@ -189,26 +114,26 @@ map.on("load", async () => {
   setInterval(refreshIncidents, 30000);
 });
 
-// =========================================
+// ===========================
 // INCIDENT REFRESH
-// =========================================
+// ===========================
 async function refreshIncidents() {
   try {
-    const res = await fetch(INCIDENTS_URL);
+    const res = await fetch("incidents.json");
     const raw = await res.json();
 
-    const cutoff = Date.now() - RECENT_MINUTES * 60 * 1000;
+    const cutoff = Date.now() - 30 * 60 * 1000;
 
     const features = raw
       .map(parseIncident)
-      .filter((f) => f.properties.timestampMs >= cutoff);
+      .filter(f => f.properties.timestampMs >= cutoff);
 
     map.getSource("incidents").setData({
       type: "FeatureCollection",
       features
     });
 
-    setStatus(`${features.length} calls in last ${RECENT_MINUTES} minutes`);
+    setStatus(`${features.length} calls in last 30 minutes`);
   } catch (err) {
     console.error("Incident load error:", err);
     setStatus("Failed to load incidents");
@@ -231,15 +156,15 @@ function parseIncident(i) {
   };
 }
 
-// =========================================
+// ===========================
 // POPUP HANDLING
-// =========================================
+// ===========================
 function setupIncidentPopup() {
   let popup = null;
 
-  const click = (e) => {
-    const f = e.features[0];
-    const p = f.properties;
+  const onClick = e => {
+    const feature = e.features[0];
+    const p = feature.properties;
 
     const html = `
       <div class="popup-header">Live Incident</div>
@@ -251,12 +176,12 @@ function setupIncidentPopup() {
 
     if (popup) popup.remove();
 
-    popup = new maplibregl.Popup({ offset: 12 })
-      .setLngLat(f.geometry.coordinates)
+    popup = new maplibregl.Popup({ offset: 10 })
+      .setLngLat(feature.geometry.coordinates)
       .setHTML(html)
       .addTo(map);
   };
 
-  map.on("click", "incident-inner", click);
-  map.on("click", "incident-outer", click);
+  map.on("click", "incident-inner", onClick);
+  map.on("click", "incident-outer", onClick);
 }
