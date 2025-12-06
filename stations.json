@@ -3,50 +3,50 @@
   "features": [
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.2839, -40.4669] },
+      "geometry": { "type": "Point", "coordinates": [175.28655, -40.46677] },
       "properties": {
         "name": "Foxton Volunteer Fire Brigade",
-        "address": "Main St, Foxton"
+        "address": "96 Main Street, Foxton"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.2359, -40.4655] },
+      "geometry": { "type": "Point", "coordinates": [175.22578, -40.46411] },
       "properties": {
         "name": "Foxton Beach Volunteer Fire Brigade",
-        "address": "Seabury Ave, Foxton Beach"
+        "address": "35 Seabury Ave, Foxton Beach"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.4140, -40.5475] },
+      "geometry": { "type": "Point", "coordinates": [175.41501, -40.54744] },
       "properties": {
         "name": "Shannon Volunteer Fire Brigade",
-        "address": "Grey St & Vogel St, Shannon"
+        "address": "47 Grey Street, Shannon"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.2410, -40.6035] },
+      "geometry": { "type": "Point", "coordinates": [175.24209, -40.60339] },
       "properties": {
         "name": "Waitārere Volunteer Fire Brigade",
-        "address": "Park Ave, Waitārere Beach"
+        "address": "4 Park Ave, Waitārere Beach"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.2825, -40.6190] },
+      "geometry": { "type": "Point", "coordinates": [175.28086, -40.62048] },
       "properties": {
         "name": "Levin Volunteer Fire Brigade",
-        "address": "Cambridge St, Levin"
+        "address": "66 Cambridge St South, Levin"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [175.2475, -40.4663] },
+      "geometry": { "type": "Point", "coordinates": [175.24853, -40.46610] },
       "properties": {
         "name": "Himatangi Beach Volunteer Fire Brigade",
-        "address": "Kuku St, Himatangi Beach"
+        "address": "2 Kuku Street, Himatangi Beach"
       }
     }
   ]
