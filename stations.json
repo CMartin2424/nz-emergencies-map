@@ -1,1 +1,35 @@
-{ "type": "FeatureCollection", "features": [] }
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.2844, -40.4678] },
+      "properties": { "name": "Foxton Fire Station" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.2287, -40.4662] },
+      "properties": { "name": "Foxton Beach Fire Station" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.4157, -40.5479] },
+      "properties": { "name": "Shannon Fire Station" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.2744, -40.6201] },
+      "properties": { "name": "Waitārere Fire Station" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.4997, -40.6221] },
+      "properties": { "name": "Levin Fire Station" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [175.2471, -40.4653] },
+      "properties": { "name": "Himatangi Beach Volunteer Fire Brigade" }
+    }
+  ]
+}
