@@ -30,7 +30,7 @@ const darkStyle = {
 const map = new maplibregl.Map({
   container: "map",
   style: darkStyle,
-  center: [175.28, -40.47], // Foxton area
+  center: [175.28, -40.47], // Foxton-ish
   zoom: 10
 });
 
@@ -42,65 +42,55 @@ function setStatus(msg) {
 }
 
 // ===========================
-// LOAD STATIONS FROM stations.json
+// LOAD STATIONS FROM GeoJSON
 // ===========================
 async function loadStations() {
   try {
-    const response = await fetch("stations.json");
-    const stations = await response.json();
+    const res = await fetch("stations.json");
+    const geo = await res.json();
 
-    const features = stations.map(s => ({
-      type: "Feature",
-      geometry: { type: "Point", coordinates: [s.lng, s.lat] },
-      properties: {
-        name: s.name,
-        address: s.address
-      }
-    }));
-
+    // add source
     map.addSource("stations", {
       type: "geojson",
-      data: {
-        type: "FeatureCollection",
-        features: features
-      }
+      data: geo
     });
 
-    // Station markers
+    // nicer fire-station style (white dot, red ring)
     map.addLayer({
       id: "stations-layer",
       type: "circle",
       source: "stations",
       paint: {
         "circle-radius": 6,
-        "circle-color": "#00eaff",
-        "circle-stroke-color": "#ffffff",
+        "circle-color": "#ffffff",
+        "circle-stroke-color": "#ef4444",
         "circle-stroke-width": 2
       }
     });
 
-    // Popups
-    map.on("click", "stations-layer", (e) => {
-      const p = e.features[0].properties;
-      const coords = e.features[0].geometry.coordinates;
+    // POPUPS
+    map.on("click", "stations-layer", e => {
+      const f = e.features[0];
+      const p = f.properties;
+      const coords = f.geometry.coordinates;
 
       new maplibregl.Popup({ offset: 8 })
         .setLngLat(coords)
         .setHTML(`
+          <div class="popup-header">Fire Station</div>
           <div class="popup-title">${p.name}</div>
-          <div class="popup-meta">${p.address}</div>
+          ${p.address ? `<div class="popup-meta">${p.address}</div>` : ""}
         `)
         .addTo(map);
     });
 
-    setStatus(`Loaded ${stations.length} stations`);
+    setStatus(`Loaded ${geo.features.length} stations`);
   } catch (err) {
     console.error("Stations load error:", err);
     setStatus("Failed to load stations");
   }
 }
 
-// Load on map ready
 map.on("load", () => {
   setStatus("Loading stations…");
   loadStations();
