@@ -42,23 +42,45 @@ function setStatus(msg) {
 }
 
 // ===========================
-// LOAD STATIONS
+// LOAD MULTIPLE STATION FILES
 // ===========================
 async function loadStations() {
   try {
-    const url = "https://cmartin2424.github.io/nz-emergencies-map/stations.json?v=" + Date.now();
-    console.log("Loading stations from:", url);
+    // Add any number of station files here:
+    const stationFiles = [
+      "stations.json?v=" + Date.now(),        // Local Horowhenua stations
+      "stations-nz.json?v=" + Date.now()     // Full NZ stations
+    ];
 
-    const res = await fetch(url);
-    const geo = await res.json();
+    let allFeatures = [];
 
-    console.log("Stations loaded:", geo);
+    for (const file of stationFiles) {
+      console.log("Loading:", file);
 
+      const res = await fetch(file);
+      const geo = await res.json();
+
+      if (geo && geo.features) {
+        allFeatures = allFeatures.concat(geo.features);
+      } else {
+        console.warn("Invalid GeoJSON in:", file);
+      }
+    }
+
+    const mergedGeoJSON = {
+      type: "FeatureCollection",
+      features: allFeatures
+    };
+
+    console.log("Total stations loaded:", mergedGeoJSON.features.length);
+
+    // Add merged station source
     map.addSource("stations", {
       type: "geojson",
-      data: geo
+      data: mergedGeoJSON
     });
 
+    // Draw station dots
     map.addLayer({
       id: "stations-layer",
       type: "circle",
@@ -71,42 +93,38 @@ async function loadStations() {
       }
     });
 
-    // Station popups
+    // Popups when clicking a station
     map.on("click", "stations-layer", e => {
       const f = e.features[0];
       const p = f.properties;
       const coords = f.geometry.coordinates;
 
-      new maplibregl.Popup({ offset: 10 })
+      new maplibregl.Popup({ offset: 8 })
         .setLngLat(coords)
         .setHTML(`
           <div class="popup-header">Fire Station</div>
           <div class="popup-title">${p.name}</div>
           <div class="popup-meta">${p.address || ""}</div>
-          <div class="popup-meta">
-            Lng: ${coords[0].toFixed(5)}, Lat: ${coords[1].toFixed(5)}
-          </div>
         `)
         .addTo(map);
     });
 
-    setStatus(`Loaded ${geo.features.length} stations`);
+    setStatus(`Loaded ${mergedGeoJSON.features.length} stations`);
 
   } catch (err) {
-    console.error("Stations failed to load:", err);
+    console.error("Error loading station files:", err);
     setStatus("Failed to load stations");
   }
 }
 
 // ===========================
-// CLICK-TO-GET-COORDS HELPER
+// CLICK-TO-GET COORDINATES (optional helper)
 // ===========================
 function enableCoordPicker() {
   map.on("click", e => {
     const { lng, lat } = e.lngLat;
     console.log("Clicked at:", lng, lat);
 
-    // Small popup so you don't have to look in console if you don't want
     new maplibregl.Popup({ offset: 6 })
       .setLngLat([lng, lat])
       .setHTML(`
@@ -124,5 +142,5 @@ function enableCoordPicker() {
 map.on("load", () => {
   setStatus("Loading stations…");
   loadStations();
-  enableCoordPicker();
+  enableCoordPicker(); // You can remove this if not needed anymore
 });
