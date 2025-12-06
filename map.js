@@ -8,25 +8,19 @@ const darkMatterStyle = {
     "basemap": {
       type: "raster",
       tiles: [
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-          .replace("{s}", "a"),
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-          .replace("{s}", "b"),
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-          .replace("{s}", "c")
+        "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
       ],
       tileSize: 256,
-      attribution:
-        "&copy; OpenStreetMap contributors &copy; CARTO"
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
     }
   },
   layers: [
     {
       id: "basemap",
       type: "raster",
-      source: "basemap",
-      minzoom: 0,
-      maxzoom: 22
+      source: "basemap"
     }
   ]
 };
@@ -44,17 +38,14 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
 const statusEl = document.getElementById("status-pill");
-
-function setStatus(t) {
-  if (statusEl) statusEl.textContent = t;
-}
+const setStatus = text => statusEl.textContent = text;
 
 // ===========================
-// YOUR DATA SRCs
+// FIXED DATA PATHS
 // ===========================
-const HYDRANTS_URL = "/data/hydrants.geojson";
-const STATIONS_URL = "/data/stations.geojson";
-const INCIDENTS_URL = "/api/incidents";
+const HYDRANTS_URL = "hydrants.json";
+const STATIONS_URL = "stations.json";
+const INCIDENTS_URL = "incidents.json";   // placeholder file
 
 const RECENT_MINUTES = 30;
 
@@ -62,7 +53,7 @@ const RECENT_MINUTES = 30;
 // LOAD LAYERS
 // ===========================
 map.on("load", async () => {
-  
+
   // Hydrants
   map.addSource("hydrants", { type: "geojson", data: HYDRANTS_URL });
   map.addLayer({
@@ -91,13 +82,12 @@ map.on("load", async () => {
     }
   });
 
-  // Incidents (dynamic)
+  // Incidents
   map.addSource("incidents", {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] }
   });
 
-  // glowing incidents
   map.addLayer({
     id: "incident-outer",
     type: "circle",
@@ -130,8 +120,6 @@ map.on("load", async () => {
 // ===========================
 async function refreshIncidents() {
   try {
-    setStatus("Updating…");
-
     const res = await fetch(INCIDENTS_URL);
     const raw = await res.json();
 
@@ -147,13 +135,15 @@ async function refreshIncidents() {
     });
 
     setStatus(`${features.length} calls in last ${RECENT_MINUTES} minutes`);
-
   } catch (err) {
     console.error(err);
     setStatus("Failed to load incidents");
   }
 }
 
+// ===========================
+// PARSE INCIDENT
+// ===========================
 function parseIncident(i) {
   const ts = new Date(i.timestamp).getTime();
   return {
@@ -175,10 +165,7 @@ function parseIncident(i) {
 function setupIncidentPopup() {
   let popup;
 
-  map.on("click", "incident-inner", e => showPopup(e));
-  map.on("click", "incident-outer", e => showPopup(e));
-
-  function showPopup(e) {
+  const handler = e => {
     const f = e.features[0];
     const p = f.properties;
 
@@ -195,5 +182,8 @@ function setupIncidentPopup() {
       .setLngLat(f.geometry.coordinates)
       .setHTML(html)
       .addTo(map);
-  }
+  };
+
+  map.on("click", "incident-inner", handler);
+  map.on("click", "incident-outer", handler);
 }
