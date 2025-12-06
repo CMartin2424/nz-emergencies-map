@@ -1,5 +1,5 @@
 // ===========================
-// CARTO DARK BASEMAP (WORKING)
+// DARK BASEMAP (Carto)
 // ===========================
 const darkStyle = {
   version: 8,
@@ -12,169 +12,96 @@ const darkStyle = {
         "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
       ],
       tileSize: 256,
-      attribution: "© OpenStreetMap © CARTO"
+      attribution: "© OpenStreetMap contributors © CARTO"
     }
   },
-  layers: [{
-    id: "basemap",
-    type: "raster",
-    source: "basemap"
-  }]
+  layers: [
+    {
+      id: "basemap",
+      type: "raster",
+      source: "basemap"
+    }
+  ]
 };
 
 // ===========================
-// MAP INIT
+// INIT MAP
 // ===========================
 const map = new maplibregl.Map({
   container: "map",
   style: darkStyle,
-  center: [175.28, -40.47], // Foxton
+  center: [175.28, -40.47], // Foxton area
   zoom: 10
 });
 
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
 const statusEl = document.getElementById("status-pill");
-const setStatus = (txt) => statusEl.textContent = txt;
+function setStatus(msg) {
+  if (statusEl) statusEl.textContent = msg;
+}
 
 // ===========================
-// LOAD EVERYTHING
+// LOAD STATIONS FROM stations.json
 // ===========================
-map.on("load", async () => {
-
-  // HYDRANTS
-  map.addSource("hydrants", {
-    type: "geojson",
-    data: "hydrants.json"
-  });
-  map.addLayer({
-    id: "hydrants",
-    type: "circle",
-    source: "hydrants",
-    paint: {
-      "circle-radius": 2,
-      "circle-color": "#9ca3af",
-      "circle-opacity": 0.5
-    }
-  });
-
-  // STATIONS
-  map.addSource("stations", {
-    type: "geojson",
-    data: "stations.json"
-  });
-  map.addLayer({
-    id: "stations",
-    type: "circle",
-    source: "stations",
-    paint: {
-      "circle-radius": 6,
-      "circle-color": "#00b7ff",
-      "circle-stroke-color": "#ffffff",
-      "circle-stroke-width": 1
-    }
-  });
-
-  // INCIDENTS
-  map.addSource("incidents", {
-    type: "geojson",
-    data: { type: "FeatureCollection", features: [] }
-  });
-
-  map.addLayer({
-    id: "incident-outer",
-    type: "circle",
-    source: "incidents",
-    paint: {
-      "circle-radius": 15,
-      "circle-color": "rgba(239, 68, 68, 0.35)",
-      "circle-blur": 1.0
-    }
-  });
-
-  map.addLayer({
-    id: "incident-inner",
-    type: "circle",
-    source: "incidents",
-    paint: {
-      "circle-radius": 6,
-      "circle-color": "#ef4444"
-    }
-  });
-
-  setupIncidentPopup();
-
-  await refreshIncidents();
-  setInterval(refreshIncidents, 30000);
-});
-
-// ===========================
-// INCIDENT REFRESH
-// ===========================
-async function refreshIncidents() {
+async function loadStations() {
   try {
-    const res = await fetch("incidents.json");
-    const raw = await res.json();
+    const response = await fetch("stations.json");
+    const stations = await response.json();
 
-    const cutoff = Date.now() - 30 * 60 * 1000;
+    const features = stations.map(s => ({
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [s.lng, s.lat] },
+      properties: {
+        name: s.name,
+        address: s.address
+      }
+    }));
 
-    const features = raw
-      .map(parseIncident)
-      .filter(f => f.properties.timestampMs >= cutoff);
-
-    map.getSource("incidents").setData({
-      type: "FeatureCollection",
-      features
+    map.addSource("stations", {
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: features
+      }
     });
 
-    setStatus(`${features.length} calls in last 30 minutes`);
+    // Station markers
+    map.addLayer({
+      id: "stations-layer",
+      type: "circle",
+      source: "stations",
+      paint: {
+        "circle-radius": 6,
+        "circle-color": "#00eaff",
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2
+      }
+    });
+
+    // Popups
+    map.on("click", "stations-layer", (e) => {
+      const p = e.features[0].properties;
+      const coords = e.features[0].geometry.coordinates;
+
+      new maplibregl.Popup({ offset: 8 })
+        .setLngLat(coords)
+        .setHTML(`
+          <div class="popup-title">${p.name}</div>
+          <div class="popup-meta">${p.address}</div>
+        `)
+        .addTo(map);
+    });
+
+    setStatus(`Loaded ${stations.length} stations`);
   } catch (err) {
-    console.error("Incident load error:", err);
-    setStatus("Failed to load incidents");
+    console.error("Stations load error:", err);
+    setStatus("Failed to load stations");
   }
 }
 
-function parseIncident(i) {
-  const ts = new Date(i.timestamp).getTime();
-  return {
-    type: "Feature",
-    geometry: { type: "Point", coordinates: [i.lng, i.lat] },
-    properties: {
-      type: i.type,
-      address: i.address,
-      units: i.units,
-      timestamp: i.timestamp,
-      timestampMs: ts
-    }
-  };
-}
-
-// ===========================
-// POPUP HANDLER
-// ===========================
-function setupIncidentPopup() {
-  let popup;
-
-  const show = (e) => {
-    const f = e.features[0];
-    const p = f.properties;
-
-    const html = `
-      <div class="popup-header">Live Incident</div>
-      <div class="popup-title">${p.type}</div>
-      <div class="popup-meta">${p.address}</div>
-      <div class="popup-meta">${new Date(p.timestamp).toLocaleTimeString()}</div>
-      <div><strong>Units:</strong> ${p.units}</div>
-    `;
-
-    if (popup) popup.remove();
-
-    popup = new maplibregl.Popup({ offset: 10 })
-      .setLngLat(f.geometry.coordinates)
-      .setHTML(html)
-      .addTo(map);
-  };
-
-  map.on("click", "incident-inner", show);
-  map.on("click", "incident-outer", show);
-}
+// Load on map ready
+map.on("load", () => {
+  setStatus("Loading stations…");
+  loadStations();
+});
