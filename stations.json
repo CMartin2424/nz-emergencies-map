@@ -1,14 +1,1 @@
-[
-  {
-    "name": "Foxton Fire Station",
-    "type": "FIRE",
-    "lat": -40.472038,
-    "lon": 175.285275
-  },
-  {
-    "name": "Foxton Ambulance Station",
-    "type": "AMBO",
-    "lat": -40.469944,
-    "lon": 175.285639
-  }
-]
+{ "type": "FeatureCollection", "features": [] }
