@@ -1,5 +1,5 @@
 // ===========================
-// DARK BASEMAP (CARTO) — WORKING
+// CARTO DARK BASEMAP (WORKING)
 // ===========================
 const darkStyle = {
   version: 8,
@@ -12,7 +12,7 @@ const darkStyle = {
         "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
       ],
       tileSize: 256,
-      attribution: "© OpenStreetMap contributors © CARTO"
+      attribution: "© OpenStreetMap © CARTO"
     }
   },
   layers: [
@@ -30,19 +30,20 @@ const darkStyle = {
 const map = new maplibregl.Map({
   container: "map",
   style: darkStyle,
-  center: [175.28, -40.47], // Foxton area
+  center: [175.28, -40.47], // Foxton
   zoom: 10
 });
 
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
 const statusEl = document.getElementById("status-pill");
-function setStatus(txt) { statusEl.textContent = txt; }
+const setStatus = txt => statusEl.textContent = txt;
 
 // ===========================
-// LOAD HYDRANTS
+// HYDRANTS
 // ===========================
 map.on("load", async () => {
+
   map.addSource("hydrants", {
     type: "geojson",
     data: "hydrants.json"
@@ -55,12 +56,12 @@ map.on("load", async () => {
     paint: {
       "circle-radius": 2,
       "circle-color": "#9ca3af",
-      "circle-opacity": 0.55
+      "circle-opacity": 0.5
     }
   });
 
   // ===========================
-  // LOAD STATIONS (using fixed coordinates)
+  // STATIONS
   // ===========================
   map.addSource("stations", {
     type: "geojson",
@@ -80,7 +81,7 @@ map.on("load", async () => {
   });
 
   // ===========================
-  // LOAD INCIDENTS
+  // INCIDENTS
   // ===========================
   map.addSource("incidents", {
     type: "geojson",
@@ -142,14 +143,13 @@ async function refreshIncidents() {
 
 function parseIncident(i) {
   const ts = new Date(i.timestamp).getTime();
-
   return {
     type: "Feature",
     geometry: { type: "Point", coordinates: [i.lng, i.lat] },
     properties: {
-      type: i.type || "Unknown",
-      address: i.address || "",
-      units: i.units || [],
+      type: i.type,
+      address: i.address,
+      units: i.units,
       timestamp: i.timestamp,
       timestampMs: ts
     }
@@ -157,14 +157,17 @@ function parseIncident(i) {
 }
 
 // ===========================
-// POPUP HANDLING
+// POPUP FOR INCIDENTS
 // ===========================
 function setupIncidentPopup() {
-  let popup = null;
+  let popup;
 
-  const onClick = e => {
-    const feature = e.features[0];
-    const p = feature.properties;
+  map.on("click", "incident-inner", e => show(e));
+  map.on("click", "incident-outer", e => show(e));
+
+  function show(e) {
+    const f = e.features[0];
+    const p = f.properties;
 
     const html = `
       <div class="popup-header">Live Incident</div>
@@ -177,11 +180,8 @@ function setupIncidentPopup() {
     if (popup) popup.remove();
 
     popup = new maplibregl.Popup({ offset: 10 })
-      .setLngLat(feature.geometry.coordinates)
+      .setLngLat(f.geometry.coordinates)
       .setHTML(html)
       .addTo(map);
-  };
-
-  map.on("click", "incident-inner", onClick);
-  map.on("click", "incident-outer", onClick);
+  }
 }
