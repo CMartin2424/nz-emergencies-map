@@ -31,7 +31,7 @@ const darkStyle = {
 const map = new maplibregl.Map({
   container: "map",
   style: darkStyle,
-  center: [175.5, -40.45], // Manawatu / Foxton area
+  center: [175.5, -40.45], // Foxton area
   zoom: 9
 });
 
@@ -44,9 +44,9 @@ const setStatus = txt => (statusEl.textContent = txt);
 // CORRECT DATA PATHS
 // ===========================
 
-const HYDRANTS_URL = "hydrants.json";  // root file
-const STATIONS_URL = "stations.json";  // root file
-const INCIDENTS_URL = "incidents.json"; // placeholder until API exists
+const HYDRANTS_URL = "hydrants.json";
+const STATIONS_URL = "stations.json";
+const INCIDENTS_URL = "incidents.json"; // temporary until backend exists
 
 const RECENT_MINUTES = 30;
 
@@ -77,19 +77,18 @@ map.on("load", async () => {
     paint: {
       "circle-radius": 4,
       "circle-color": "#ffffff",
-      "circle-opacity": 0.95",
+      "circle-opacity": 0.95,
       "circle-stroke-color": "#000000",
       "circle-stroke-width": 1
     }
   });
 
-  // Live incidents source
+  // Incidents
   map.addSource("incidents", {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] }
   });
 
-  // Glow outside
   map.addLayer({
     id: "incident-outer",
     type: "circle",
@@ -101,7 +100,6 @@ map.on("load", async () => {
     }
   });
 
-  // Core dot
   map.addLayer({
     id: "incident-inner",
     type: "circle",
