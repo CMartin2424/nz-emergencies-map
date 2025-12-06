@@ -1,11 +1,8 @@
-// =====================================================
-// NZ EMERGENCIES MAP - CLEAN, OPTIMISED, ERROR-PROOF VERSION
-// =====================================================
-
 // ===============================
-// DATA SOURCES (RAW GITHUB FILES)
+// NZ EMERGENCIES MAP - FIXED SCRIPT
 // ===============================
 
+// --- DATA SOURCES ---
 const CALLS_URL =
   "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-data/main/calls.json";
 
@@ -15,39 +12,35 @@ const STATIONS_URL =
 const HYDRANTS_URL =
   "https://raw.githubusercontent.com/CMartin2424/nz-emergencies-map/main/hydrants.json";
 
-// Calls remain visible for X days
+// How long calls stay on the map (days)
 const MAX_CALL_AGE_DAYS = 7;
 
 
 // ===============================
-// MAP INITIALISATION
+// MAP
 // ===============================
 
-const map = L.map("map").setView([-41.2, 174.7], 6); // Center on NZ
+const map = L.map("map").setView([-41.2, 174.7], 6);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 20,
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-
-// ===============================
-// LAYERS
-// ===============================
-
+// Layers
 const fireLayer = L.layerGroup().addTo(map);
 const amboLayer = L.layerGroup().addTo(map);
 const stationLayer = L.layerGroup().addTo(map);
-const hydrantLayer = L.layerGroup(); // added/removed with zoom
+const hydrantLayer = L.layerGroup();
 
 
 // ===============================
-// ICON HELPER FUNCTION
+// ICON HELPER
 // ===============================
 
-function makeIcon(filename) {
+function makeIcon(file) {
   return L.icon({
-    iconUrl: `icons/${filename}`,
+    iconUrl: `icons/${file}`,
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -35]
@@ -56,65 +49,59 @@ function makeIcon(filename) {
 
 
 // ===============================
-// ICON CACHE (MATCHES EXACT FILENAMES)
+// ICONS — MATCHING YOUR REAL FILE NAMES
 // ===============================
 
 const iconCache = {
-  // 🔥 FIRE CALL ICONS
-  STRU: makeIcon("housefire.PNG"),
+
+  // FIRE CALLS
+  STRU: makeIcon("STRU.png"),
   MIN: makeIcon("MIN.PNG"),
   MVC: makeIcon("MVC.PNG"),
   VEG: makeIcon("VEG.PNG"),
-  MED: makeIcon("MED.PNG"),
   HAZ: makeIcon("HAZ.PNG"),
   NAT: makeIcon("NAT.PNG"),
-  ALARM: makeIcon("Alarm.PNG"),
-  FIREALM: makeIcon("Alarm.PNG"),
+  MED: makeIcon("MED.png"),
 
-  FIRE_FALLBACK: makeIcon("Alarm.PNG"),
+  ALARM: makeIcon("ALARM.png"),
+  FIREALM: makeIcon("ALARM.png"),
 
-  // 🚑 AMBULANCE COLOUR CALLS
-  RED: makeIcon("RED.PNG"),
-  ORANGE: makeIcon("Orange.PNG"),
-  GREEN: makeIcon("Green.PNG"),
-  PURPLE: makeIcon("purple.PNG"),
+  FIRE_FALLBACK: makeIcon("ALARM.png"),
 
-  AMBO_FALLBACK: makeIcon("Green.PNG"),
+  // AMBULANCE COLOUR CALLS
+  RED: makeIcon("RED.png"),
+  GREEN: makeIcon("GREEN.png"),
+  ORANGE: makeIcon("ORANGE.png"),
+  PURPLE: makeIcon("PURPLE.png"),
 
-  // 🚒 STATIONS
-  FIRE_STATION: makeIcon("firestation.png"),
-  AMBO_STATION: makeIcon("ambostation.png")
+  AMBO_FALLBACK: makeIcon("GREEN.png"),
+
+  // STATIONS
+  FIRE_STATION: makeIcon("fire-station.png"),
+  AMBO_STATION: makeIcon("ambo-station.png"),
+
+  // HYDRANT
+  HYDRANT: makeIcon("hydrant.png")
 };
 
 
 // ===============================
-// HELPER FUNCTIONS
+// HELPERS
 // ===============================
 
-// Ambulance call types
-function isAmbulanceColor(type) {
-  type = (type || "").toUpperCase();
-  return ["RED", "ORANGE", "GREEN", "PURPLE"].includes(type);
+function isAmbulanceCallType(t) {
+  t = (t || "").toUpperCase();
+  return ["RED", "ORANGE", "GREEN", "PURPLE"].includes(t);
 }
 
-// Select correct icon
-function getIcon(call) {
-  const t = (call.type || "").toUpperCase();
+function getIconForCall(call) {
+  const type = (call.type || "").toUpperCase();
 
-  if (isAmbulanceColor(t)) return iconCache[t] || iconCache.AMBO_FALLBACK;
+  if (isAmbulanceCallType(type)) {
+    return iconCache[type] || iconCache.AMBO_FALLBACK;
+  }
 
-  return iconCache[t] || iconCache.FIRE_FALLBACK;
-}
-
-// Keep only recent calls
-function isRecent(timestamp) {
-  if (!timestamp) return true;
-  const ts = new Date(timestamp);
-  if (isNaN(ts)) return true;
-
-  const ageMs = Date.now() - ts.getTime();
-  const maxMs = MAX_CALL_AGE_DAYS * 24 * 60 * 60 * 1000;
-  return ageMs < maxMs;
+  return iconCache[type] || iconCache.FIRE_FALLBACK;
 }
 
 
@@ -132,25 +119,26 @@ async function loadCalls() {
 
     calls.forEach(call => {
       if (!call.lat || !call.lon) return;
-      if (!isRecent(call.timestamp)) return;
 
-      const marker = L.marker([call.lat, call.lon], {
-        icon: getIcon(call)
-      }).bindPopup(`
+      const icon = getIconForCall(call);
+
+      const popup = `
         <b>${call.type}</b><br>
         ${call.address || ""}<br>
-        ${call.station || ""}<br>
-        <i>${call.timestamp || ""}</i>
-      `);
+        ${call.details || ""}<br>
+        ${call.timestamp || ""}
+      `;
 
-      if (isAmbulanceColor(call.type))
+      const marker = L.marker([call.lat, call.lon], { icon }).bindPopup(popup);
+
+      if (isAmbulanceCallType(call.type))
         marker.addTo(amboLayer);
       else
         marker.addTo(fireLayer);
     });
 
   } catch (err) {
-    console.error("ERROR loading calls.json:", err);
+    console.error("Error loading calls:", err);
   }
 }
 
@@ -169,17 +157,17 @@ async function loadStations() {
     stations.forEach(s => {
       if (!s.lat || !s.lon) return;
 
-      const icon =
-        s.type === "AMBO"
-          ? iconCache.AMBO_STATION
-          : iconCache.FIRE_STATION;
+      const icon = (s.type === "AMBO")
+        ? iconCache.AMBO_STATION
+        : iconCache.FIRE_STATION;
 
       L.marker([s.lat, s.lon], { icon })
         .addTo(stationLayer)
         .bindPopup(`<b>${s.name}</b><br>Type: ${s.type}`);
     });
+
   } catch (err) {
-    console.error("ERROR loading stations.json:", err);
+    console.error("Error loading stations:", err);
   }
 }
 
@@ -207,21 +195,17 @@ async function loadHydrants() {
     });
 
   } catch (err) {
-    console.error("ERROR loading hydrants.json:", err);
+    console.error("Error loading hydrants:", err);
   }
 }
 
 
-// ===============================
-// HYDRANTS ONLY VISIBLE WHEN ZOOMED IN
-// ===============================
-
+// Show hydrants only on zoom >= 16
 map.on("zoomend", () => {
-  if (map.getZoom() >= 16) {
-    if (!map.hasLayer(hydrantLayer)) map.addLayer(hydrantLayer);
-  } else {
+  if (map.getZoom() >= 16)
+    map.addLayer(hydrantLayer);
+  else
     map.removeLayer(hydrantLayer);
-  }
 });
 
 
@@ -248,6 +232,3 @@ L.control.layers(
 loadCalls();
 loadStations();
 loadHydrants();
-
-// Auto-refresh calls every 60 sec (optional)
-// setInterval(loadCalls, 60000);
