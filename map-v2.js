@@ -42,11 +42,10 @@ function setStatus(msg) {
 }
 
 // ===========================
-// LOAD STATIONS (FIXED)
+// LOAD STATIONS
 // ===========================
 async function loadStations() {
   try {
-    // 🚨 Force GitHub to return the NEWEST file every time
     const url = "https://cmartin2424.github.io/nz-emergencies-map/stations.json?v=" + Date.now();
     console.log("Loading stations from:", url);
 
@@ -55,13 +54,11 @@ async function loadStations() {
 
     console.log("Stations loaded:", geo);
 
-    // Add GeoJSON as a source
     map.addSource("stations", {
       type: "geojson",
       data: geo
     });
 
-    // Station marker style
     map.addLayer({
       id: "stations-layer",
       type: "circle",
@@ -74,7 +71,7 @@ async function loadStations() {
       }
     });
 
-    // Popups
+    // Station popups
     map.on("click", "stations-layer", e => {
       const f = e.features[0];
       const p = f.properties;
@@ -86,6 +83,9 @@ async function loadStations() {
           <div class="popup-header">Fire Station</div>
           <div class="popup-title">${p.name}</div>
           <div class="popup-meta">${p.address || ""}</div>
+          <div class="popup-meta">
+            Lng: ${coords[0].toFixed(5)}, Lat: ${coords[1].toFixed(5)}
+          </div>
         `)
         .addTo(map);
     });
@@ -99,9 +99,30 @@ async function loadStations() {
 }
 
 // ===========================
+// CLICK-TO-GET-COORDS HELPER
+// ===========================
+function enableCoordPicker() {
+  map.on("click", e => {
+    const { lng, lat } = e.lngLat;
+    console.log("Clicked at:", lng, lat);
+
+    // Small popup so you don't have to look in console if you don't want
+    new maplibregl.Popup({ offset: 6 })
+      .setLngLat([lng, lat])
+      .setHTML(`
+        <div class="popup-header">Picked point</div>
+        <div class="popup-meta">Lng: ${lng.toFixed(5)}</div>
+        <div class="popup-meta">Lat: ${lat.toFixed(5)}</div>
+      `)
+      .addTo(map);
+  });
+}
+
+// ===========================
 // START
 // ===========================
 map.on("load", () => {
   setStatus("Loading stations…");
   loadStations();
+  enableCoordPicker();
 });
