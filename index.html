@@ -3,11 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>NZ Emergencies Map</title>
 
-  <!-- MapLibre -->
-  <link href="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.css" rel="stylesheet" />
-  <script src="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.js"></script>
+  <!-- MapLibre GL -->
+  <link 
+    href="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.css" 
+    rel="stylesheet" 
+  />
+  <script 
+    src="https://unpkg.com/maplibre-gl@3.7.0/dist/maplibre-gl.js">
+  </script>
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
@@ -15,7 +21,7 @@
 
 <body>
 
-  <!-- Map container -->
+  <!-- MAP -->
   <div id="map"></div>
 
   <!-- Logo badge -->
@@ -23,11 +29,11 @@
     NZ Emergencies <span class="badge-live-dot"></span> Live
   </div>
 
-  <!-- Status pill -->
+  <!-- Status -->
   <div id="status-pill" class="status-pill">Loading…</div>
 
-  <!-- Load the correct JS file -->
-  <script src="map-v2.js"></script>
+  <!-- Load the correct JS FILE -->
+  <script src="map.js?v=4"></script>
 
 </body>
 </html>
